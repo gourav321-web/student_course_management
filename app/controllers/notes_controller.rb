@@ -34,6 +34,17 @@ class NotesController < ApplicationController
   end
 
   def update
+    @notes = Note.find_by_id(params[:id])
+    if @notes.present?
+      render json: {messege:"notes are not present for this id"}
+    elsif @notes.update(permit_params)
+      render json: {
+        messege:"notes updated successfully",
+        notes:@notes
+      }
+    else
+      render json: {messege:"notes are not updated!"}
+    end
   end
 
   def destroy
