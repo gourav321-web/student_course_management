@@ -1,0 +1,16 @@
+# .rubocop.yml
+require:
+  - rubocop-rails
+
+AllCops:
+  # Use `bundle exec rubocop --auto-gen-config` to help generate a todo file for existing offenses
+  NewCops: enable
+  TargetRubyVersion: 3.0 # e.g., 3.2
+  TargetRailsVersion: 7.1 # e.g., 7.1
+  Exclude:
+    - 'db/schema.rb'
+    - 'config/initializers/**/*'
+    - 'bin/**/*'
+
+Style/FrozenStringLiteralComment:
+  Enabled: false

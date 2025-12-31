@@ -1,7 +1,8 @@
+# User Controller
 class UsersController < ApplicationController
   skip_forgery_protection
 
-  before_action :find_user, only: [:show, :update, :destroy]
+  before_action :find_user, only: %i[show update destroy]
 
   def index
     users = User.all
@@ -9,7 +10,7 @@ class UsersController < ApplicationController
     if users.present?
       render json: users
     else
-      render json: { message: "No users found" }
+      render json: { message: 'No users found' }
     end
   end
 
@@ -23,36 +24,46 @@ class UsersController < ApplicationController
     if user.save
       render json: user
     else
-      render json: { message: "User not created" }
+      render json: { message: 'User not created' }
     end
   end
 
   def update
     if @user.update(user_params)
       render json: {
-        message: "User updated successfully",
+        message: 'User updated successfully',
         user: @user
       }
     else
-      render json: { message: "User update failed" }
+      render json: { message: 'User update failed' }
     end
   end
 
   def destroy
     @user.destroy
-    render json: { message: "User deleted successfully" }
+    render json: { message: 'User deleted successfully' }
+  end
+
+  def coursewithnotes
+    user = User.includes(courses: :notes).find_by(id: params[:id])
+        
+    if user
+      render json: user.to_json(include: { courses: { include: :notes } })
+    else
+      render json: { error: 'User not found' }
+    end
   end
 
   private
 
   def find_user
     @user = User.find_by(id: params[:id])
-    unless @user
-      render json: { message: "User not found" }
-    end
+    return if @user
+
+    render json: { message: 'User not found' }
   end
 
   def user_params
-    params.require(:user).permit(:name,:email)
+    params.require(:user).permit(:name, :email)
   end
 end

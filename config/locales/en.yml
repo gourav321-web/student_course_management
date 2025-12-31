@@ -29,3 +29,15 @@
 
 en:
   hello: "Hello world"
+
+en:
+  activerecord:
+    models:
+      article: "User"
+    attributes:
+      article:
+        title: "Title"
+    errors:
+      messages:
+        blank: "cannot be blank"
+
