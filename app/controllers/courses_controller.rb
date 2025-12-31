@@ -1,63 +1,90 @@
 class CoursesController < ApplicationController
   skip_forgery_protection
 
+  before_action :find_user
+  before_action :find_course, only: [:show, :update, :destroy]
+
   def index
-    @course = Course.all.where(user_id:params[:user_id])
-    if @course.present?
-      render json: @course
+    courses = @user.courses
+
+    if courses.present?
+      render json: courses
     else
-      render json: {messege:"there is no courses present yet"}
+      render json: { message: "No courses present yet" }
     end
   end
 
   def show
-    @course = Course.find_by_id(params[:id])
-    if @course.present?
-      render json: @course
-    else
-      render json: {messege:"this course are not created"}
-    end
+    render json: @course
   end
 
   def create
-    @course = Course.new(permit_params)
-    @course[:user_id] = params[:user_id]
-    if @course.save
-      render json: @course
+    course = @user.courses.new(course_params)
+
+    if course.save
+      render json: {
+        message: "Course created successfully",
+        course: course
+      }
     else
-      render json: {messeg:"course not created!"}
+      render json: { message: "Course not created" }
     end
   end
 
   def update
-    @course = Course.find_by_id(params[:id])
-    if ((@course.present?))
-      if @course.update(permit_params)
-        render json: {
-          messege:"successfully Updated",
-          Course:@course
-        }
-      else
-        render json:"course not updated"
-      end
+    if @course.update(course_params)
+      render json: {
+        message: "Course updated successfully",
+        course: @course
+      }
     else
-      render json: {messege: "Course not found"}
+      render json: { message: "Course not updated" }
     end
   end
 
   def destroy
-    @course = Course.find_by_id(params[:id])
-    if ((@course.present?))
-      @course.destroy
-      render json: {messege:"course deleted successfully"}
+    @course.destroy
+    render json: { message: "Course deleted successfully" }
+  end
+
+  def filter
+    courses = @user.courses
+
+    if params[:date].present?
+      courses = courses.where("DATE(created_at) = ?", params[:date])
+    end
+
+    if params[:last_days].present?
+      courses = courses.where(
+        "created_at >= ?",
+        params[:last_days].to_i.days.ago
+      )
+    end
+
+    if courses.present?
+      render json: courses
     else
-      render json: {messege:"course not found"}
+      render json: { message: "No courses found for given date" }
     end
   end
 
   private
-  def permit_params
-    params.require(:course).permit(:name)
+
+  def find_user
+    @user = User.find_by(id: params[:user_id])
+    unless @user
+      render json: { message: "User not found" }
+    end
   end
 
+  def find_course
+    @course = @user.courses.find_by(id: params[:id])
+    unless @course
+      render json: { message: "Course not found" }
+    end
+  end
+
+  def course_params
+    params.require(:course).permit(:name)
+  end
 end

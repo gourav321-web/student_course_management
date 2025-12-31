@@ -1,58 +1,95 @@
 class NotesController < ApplicationController
   skip_forgery_protection
+
+  before_action :find_user
+  before_action :find_course
+  before_action :find_note, only: [:show, :update, :destroy]
+
   def index
-    @notes = Note.all
-    if @notes.present?
-      @notes = @notes
-      render json: @notes
+    notes = @course.notes
+
+    if notes.present?
+      render json: notes
     else
-      render json: {messege:"there is no notes present for this course"}
+      render json: { message: "There are no notes for this course" }
     end
   end
 
   def show
-    @notes = Note.find_by_id(params[:id])
-    if @notes.present?
-      render json: @notes
-    else
-      render json: {messege:"there is no notes for this route"}
-    end
-
+    render json: @note
   end
 
   def create
-    @notes = Note.new(permit_params)
-    @notes[:course_id] = params[:course_id]
-    if(@notes.save)
+    note = @course.notes.new(note_params)
+
+    if note.save
       render json: {
-        messege:"notes created successfully",
-        notes:@notes
+        message: "Note created successfully",
+        note: note
       }
     else
-      render json: {messege:"notes not created!"}
+      render json: { message: "Note not created" }
     end
   end
 
   def update
-    @notes = Note.find_by_id(params[:id])
-    if @notes.present?
-      render json: {messege:"notes are not present for this id"}
-    elsif @notes.update(permit_params)
+    if @note.update(note_params)
       render json: {
-        messege:"notes updated successfully",
-        notes:@notes
+        message: "Note updated successfully",
+        note: @note
       }
     else
-      render json: {messege:"notes are not updated!"}
+      render json: { message: "Note not updated" }
     end
   end
 
   def destroy
+    @note.destroy
+    render json: { message: "Note deleted successfully" }
+  end
+
+  def filter
+    notes = @course.notes
+
+    if params[:date].present?
+      notes = notes.where("DATE(created_at) = ?", params[:date])
+    end
+
+    if params[:last_days].present?
+      notes = notes.where("created_at >= ?", params[:last_days].to_i.days.ago)
+    end
+
+    if notes.present?
+      render json: notes
+    else
+      render json: { message: "No notes found for given date" }
+    end
   end
 
   private
 
-  def permit_params
-    params.require(:note).permit(:title,:description, :course_id)
+  def find_user
+    @user = User.find_by(id: params[:user_id])
+    unless @user
+      render json: { message: "User not found" }
+    end
+  end
+
+  def find_course
+    @course = @user.courses.find_by(id: params[:course_id])
+    unless @course
+      render json: { message: "Course not found" }
+    end
+  end
+
+  def find_note
+    @note = @course.notes.find_by(id: params[:id])
+    unless @note
+      render json: { message: "Note not found" }
+    end
+  end
+
+  def note_params
+    params.require(:note).permit(:title, :description)
   end
 end
