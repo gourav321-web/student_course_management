@@ -1,7 +1,11 @@
 Rails.application.routes.draw do
+
+  post 'sessions/login', to: "sessions#login"
+  get 'sessions/logout/:id', to: "sessions#logout"
+
   resources :users do
     member do
-      get :coursewithnotes
+      get :course_with_notes
     end
 
     resources :courses do

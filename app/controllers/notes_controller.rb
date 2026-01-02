@@ -13,7 +13,7 @@ class NotesController < ApplicationController
       notes = notes.where(status:0).or(notes.where(course_id:params[:course_id]))
       render json: notes
     else
-      render json: { message: 'There are no notes for this course' }
+      render json: []
     end
   end
 

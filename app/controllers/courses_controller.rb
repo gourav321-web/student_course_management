@@ -12,7 +12,7 @@ class CoursesController < ApplicationController
       courses = courses.where(user_id:params[:user_id]).or(courses.where(status:0))
       render json: courses
     else
-      render json: { message: 'No courses Found' }
+      render json: []
     end
   end
 

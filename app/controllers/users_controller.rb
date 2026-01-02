@@ -10,7 +10,7 @@ class UsersController < ApplicationController
     if users.present?
       render json: users
     else
-      render json: { message: 'No users found' }
+      render json: []
     end
   end
 
@@ -24,7 +24,7 @@ class UsersController < ApplicationController
     if user.save
       render json: user
     else
-      render json: { message: 'User not created' }
+      render json: user.errors.messages 
     end
   end
 
@@ -35,22 +35,22 @@ class UsersController < ApplicationController
         user: @user
       }
     else
-      render json: { message: 'User update failed' }
+      render json: @user.errors.messages
     end
   end
 
   def destroy
     @user.destroy
-    render json: { message: 'User deleted successfully' }
+    render json: { message: 'User deleted successfully',user:@user }
   end
 
-  def coursewithnotes
+  def course_with_notes
     user = User.includes(courses: :notes).find_by(id: params[:id])
         
     if user
       render json: user.to_json(include: { courses: { include: :notes } })
     else
-      render json: { error: 'User not found' }
+      render json: []
     end
   end
 
@@ -64,6 +64,6 @@ class UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:name, :email)
+    params.require(:user).permit(:name, :email, :password)
   end
 end
